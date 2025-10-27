@@ -1,0 +1,29 @@
+# BlockNova Labs
+
+## 🧩 Project Description
+**BlockNova Labs** is a decentralized blockchain protocol that enables users to securely **store, manage, and retrieve their data** on-chain. It uses smart contracts to ensure immutability, transparency, and privacy-preserving data storage through external storage references like IPFS.
+
+---
+
+## 🎯 Project Vision
+To establish a **trustless and secure on-chain data registry system** where users control their data while leveraging decentralized technology for verification, transparency, and accessibility.
+
+---
+
+## ✨ Key Features
+- **User Registration:** Users can register their name and data (e.g., IPFS hash) on the blockchain.
+- **Data Update:** Registered users can securely update their stored data.
+- **Data Retrieval:** Anyone can fetch a user’s registered information publicly.
+- **Event Logging:** Every action is logged through blockchain events for transparency.
+
+---
+
+## 🔮 Future Scope
+- Integrate **encryption** for secure private data storage.
+- Add **access control mechanisms** for restricted data visibility.
+- Build a **frontend dashboard** to visualize and manage user data.
+- Introduce **cross-chain compatibility** for wider interoperability.
+
+---
+
+Address: 
