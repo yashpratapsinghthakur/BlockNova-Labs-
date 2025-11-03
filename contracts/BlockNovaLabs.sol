@@ -1,44 +1,100 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.26;
 
 /**
  * @title BlockNova Labs
- * @dev A decentralized registry where users can store and retrieve their data securely on-chain.
+ * @notice A decentralized R&D collaboration contract where researchers can submit projects,
+ *         get community funding, and mark them as completed upon success.
  */
 contract Project {
-    address public owner;
+    address public admin;
+    uint256 public projectCount;
 
-    struct UserData {
-        string name;
-        string dataHash;
+    struct ResearchProject {
+        uint256 id;
+        address creator;
+        string title;
+        string description;
+        uint256 fundsRaised;
+        uint256 goalAmount;
+        bool completed;
     }
 
-    mapping(address => UserData) private userRegistry;
+    mapping(uint256 => ResearchProject) public researchProjects;
+    mapping(uint256 => mapping(address => uint256)) public contributions;
 
-    event DataRegistered(address indexed user, string name, string dataHash);
-    event DataUpdated(address indexed user, string newDataHash);
+    event ProjectCreated(uint256 indexed id, address indexed creator, string title, uint256 goalAmount);
+    event Funded(uint256 indexed id, address indexed contributor, uint256 amount);
+    event ProjectCompleted(uint256 indexed id, address indexed creator);
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
 
     constructor() {
-        owner = msg.sender;
+        admin = msg.sender;
     }
 
-    /// @notice Register user data (e.g., IPFS hash, encrypted data)
-    function registerData(string calldata name, string calldata dataHash) external {
-        require(bytes(userRegistry[msg.sender].dataHash).length == 0, "User already registered");
-        userRegistry[msg.sender] = UserData(name, dataHash);
-        emit DataRegistered(msg.sender, name, dataHash);
+    /**
+     * @notice Create a new research project for funding
+     * @param _title Title of the project
+     * @param _description Short description
+     * @param _goalAmount Funding goal in wei
+     */
+    function createResearchProject(string memory _title, string memory _description, uint256 _goalAmount) external {
+        require(bytes(_title).length > 0, "Title required");
+        require(bytes(_description).length > 0, "Description required");
+        require(_goalAmount > 0, "Goal amount must be greater than zero");
+
+        projectCount++;
+        researchProjects[projectCount] = ResearchProject(
+            projectCount,
+            msg.sender,
+            _title,
+            _description,
+            0,
+            _goalAmount,
+            false
+        );
+
+        emit ProjectCreated(projectCount, msg.sender, _title, _goalAmount);
     }
 
-    /// @notice Update stored data for a user
-    function updateData(string calldata newDataHash) external {
-        require(bytes(userRegistry[msg.sender].dataHash).length > 0, "User not registered");
-        userRegistry[msg.sender].dataHash = newDataHash;
-        emit DataUpdated(msg.sender, newDataHash);
+    /**
+     * @notice Fund a research project
+     * @param _id Project ID
+     */
+    function fundProject(uint256 _id) external payable {
+        ResearchProject storage rp = researchProjects[_id];
+        require(_id > 0 && _id <= projectCount, "Invalid project ID");
+        require(!rp.completed, "Project already completed");
+        require(msg.value > 0, "Funding amount must be greater than zero");
+
+        rp.fundsRaised += msg.value;
+        contributions[_id][msg.sender] += msg.value;
+
+        emit Funded(_id, msg.sender, msg.value);
     }
 
-    /// @notice Retrieve stored user data
-    function getUserData(address user) external view returns (string memory, string memory) {
-        UserData memory data = userRegistry[user];
-        return (data.name, data.dataHash);
+    /**
+     * @notice Mark a research project as completed (only admin)
+     * @param _id Project ID
+     */
+    function markProjectCompleted(uint256 _id) external onlyAdmin {
+        ResearchProject storage rp = researchProjects[_id];
+        require(_id > 0 && _id <= projectCount, "Invalid project ID");
+        require(!rp.completed, "Already marked as completed");
+
+        rp.completed = true;
+        payable(rp.creator).transfer(rp.fundsRaised);
+
+        emit ProjectCompleted(_id, rp.creator);
     }
-}
+
+    /**
+     * @notice Get research project details
+     * @param _id Project ID
+     */
+    function getResearchProject(uint256 _id) external view returns (ResearchProject memory) {
+        requi
